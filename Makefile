@@ -13,6 +13,9 @@ GOPKGBASEDIR ?= $(shell dirname "$(GOPKGDIR)")
 
 SELINUXOPT ?= $(shell test -x /usr/sbin/selinuxenabled && selinuxenabled && echo -Z)
 
+TAG = $(shell git describe --always --tags --abbrev=0 | tr -d "[v\r\n]")
+COMMIT = $(shell git rev-parse --short HEAD| tr -d "[ \r\n\']")
+
 GO_BUILD=$(GO) build
 # Go module support: set `-mod=vendor` to use the vendored sources
 ifeq ($(shell go help mod >/dev/null 2>&1 && echo true), true)
@@ -34,7 +37,7 @@ gofmt:
 
 
 binaries:
-	$(GO_BUILD) -o bin/dnsname github.com/containers/dnsname/plugins/meta/dnsname
+	CGO_ENABLED=0 $(GO_BUILD) --ldflags "-X github.com/containernetworking/plugins/pkg/utils/buildversion.BuildVersion=v$(TAG)-$(COMMIT)" -o bin/dnsname github.com/containers/dnsname/plugins/meta/dnsname
 
 .PHONY: .gitvalidation
 .gitvalidation:
